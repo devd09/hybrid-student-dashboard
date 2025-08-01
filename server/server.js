@@ -7,6 +7,9 @@ require("dotenv").config();
 const studentRoutes = require("./routes/studentRoutes");
 
 const app = express();
+const adminRoutes = require("./routes/adminRoutes");
+app.use("/api/admin", adminRoutes);
+
 app.use(cors());
 app.use(express.json());
 
