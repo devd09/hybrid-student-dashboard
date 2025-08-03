@@ -25,6 +25,7 @@ app.get("/", (req, res) => {
   res.send("Student Dashboard Backend is Running");
 });
 
+mongoose.set('debug', true);
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {

@@ -7,7 +7,8 @@ const Student = require("../models/Student");
 router.get("/", async (req, res) => {
   console.log("📩 /api/students hit");
   try {
-    const student = await Student.findOne(); // instead of .find()
+    const student = await Student.find(); // instead of .find()
+    console.log(student)
     res.json(student);
   } catch (err) {
     console.error("❌ Failed to fetch students:", err);
@@ -29,7 +30,7 @@ router.post("/", async (req, res) => {
     if (existing) {
       return res.status(409).json({ error: "Roll number already exists." });
     }
-
+    
     const student = new Student({ name, roll, semester, subjects });
     await student.save();
     res.status(201).json(student);
