@@ -31,4 +31,4 @@ studentSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("Student", studentSchema);
+module.exports = mongoose.model("Student", studentSchema, "students");

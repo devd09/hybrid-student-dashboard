@@ -5,9 +5,16 @@ const Student = require("../models/Student");
 
 // Get all students
 router.get("/", async (req, res) => {
-  const students = await Student.find();
-  res.json(students);
+  console.log("📩 /api/students hit");
+  try {
+    const student = await Student.findOne(); // instead of .find()
+    res.json(student);
+  } catch (err) {
+    console.error("❌ Failed to fetch students:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
+
 
 // Add new student with validation
 router.post("/", async (req, res) => {
