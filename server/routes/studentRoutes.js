@@ -5,15 +5,30 @@ const Student = require("../models/Student");
 
 // Get all students
 router.get("/", async (req, res) => {
-    const students = await Student.find();
-    res.json(students);
+  const students = await Student.find();
+  res.json(students);
 });
 
-// Add new student
+// Add new student with validation
 router.post("/", async (req, res) => {
-    const newStudent = new Student(req.body);
-    await newStudent.save();
-    res.status(201).json(newStudent);
+  try {
+    const { name, roll, semester, subjects } = req.body;
+
+    if (!name || !roll || !semester || !Array.isArray(subjects) || subjects.length === 0) {
+      return res.status(400).json({ error: "Name, roll, semester, and at least one subject are required." });
+    }
+
+    const existing = await Student.findOne({ roll });
+    if (existing) {
+      return res.status(409).json({ error: "Roll number already exists." });
+    }
+
+    const student = new Student({ name, roll, semester, subjects });
+    await student.save();
+    res.status(201).json(student);
+  } catch (err) {
+    res.status(500).json({ error: "Server error.", details: err.message });
+  }
 });
 
 module.exports = router;

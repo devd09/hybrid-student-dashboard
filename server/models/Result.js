@@ -2,39 +2,33 @@
 const mongoose = require("mongoose");
 
 const subjectSchema = new mongoose.Schema({
-    course: { type: mongoose.Schema.Types.ObjectId, ref: "Course", required: true },
-    marks: {
-    type: Number,
-    required: true,
-    min: [0, "Marks must be at least 0"],
-    max: [100, "Marks cannot exceed 100"]
-    }
+    name: { type: String, required: true },
+    marks: { type: Number, required: true, min: 0 },
+    maxMarks: { type: Number, required: true, default: 100 }
 });
 
 const resultSchema = new mongoose.Schema({
-    student: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
-    semester: { type: Number, required: true },
-    year: { type: String, required: true },
-    subjects: { type: [subjectSchema], required: true },
+    studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
+    semester: { type: String, required: true },
+    subjects: [subjectSchema],
     totalMarks: Number,
     percentage: Number,
-    grade: String
-});
+    status: { type: String, enum: ["pass", "fail"], default: "pass" },
+    createdAt: { type: Date, default: Date.now }
+    });
 
-// Auto-calculate total, percentage, and grade before saving
-resultSchema.pre("save", function (next) {
-    const total = this.subjects.reduce((sum, subj) => sum + subj.marks, 0);
-    const count = this.subjects.length;
-    this.totalMarks = total;
-    this.percentage = count > 0 ? total / count : 0;
+    // Auto-calculate total, percentage, and status before saving
+    resultSchema.pre("save", function (next) {
+    const result = this;
+    const total = result.subjects.reduce((sum, sub) => sum + sub.marks, 0);
+    const maxTotal = result.subjects.reduce((sum, sub) => sum + sub.maxMarks, 0);
+    result.totalMarks = total;
+    result.percentage = ((total / maxTotal) * 100).toFixed(2);
 
-  // Grade logic
-    if (this.percentage >= 90) this.grade = "A+";
-    else if (this.percentage >= 80) this.grade = "A";
-    else if (this.percentage >= 70) this.grade = "B";
-    else if (this.percentage >= 60) this.grade = "C";
-    else if (this.percentage >= 50) this.grade = "D";
-    else this.grade = "F";
+    // Status: if any subject < 35% of its maxMarks → fail
+    result.status = result.subjects.some(sub => sub.marks < 0.35 * sub.maxMarks)
+        ? "fail"
+        : "pass";
 
     next();
 });
