@@ -1,14 +1,13 @@
-// server/routes/adminRoutes.js
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/Admin");
-const verifyAdmin = require("../middleware/auth"); // Only one middleware
+const authAdmin = require("../middleware/authAdmin"); // ✅ Correct middleware
 
 const router = express.Router();
 
 // 🔐 Protected route: Dashboard
-router.get("/dashboard", verifyAdmin, async (req, res) => {
+router.get("/dashboard", authAdmin, async (req, res) => {
   try {
     const admin = await Admin.findById(req.admin.id).select("-password");
     res.json({ msg: "Welcome Admin!", admin });
