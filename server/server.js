@@ -5,38 +5,43 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
-const app = express();
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
 const adminRoutes = require("./routes/adminRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const resultRoutes = require("./routes/resultRoutes");
 
-app.use("/api/admin", adminRoutes);
-app.use("/api/students", studentRoutes);
-app.use("/api/results", resultRoutes);
+const app = express();
+
+// Middlewares
+app.use(cors());
+app.use(express.json());
+
+// API Routes
+app.use("/api/admin", adminRoutes);       // Admin login, etc.
+app.use("/api/students", studentRoutes);  // Student login/dashboard
+app.use("/api/results", resultRoutes);    // Results fetch/create/update
 
 // Health check route
 app.get("/", (req, res) => {
-  res.send("Student Dashboard Backend is Running");
+  res.send("✅ Student Dashboard Backend is Running");
 });
 
-mongoose.set('debug', true);
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => {
-    console.log("MongoDB connected");
+// Enable Mongoose debug logs (shows raw queries)
+mongoose.set("debug", true);
 
-    // Start server only after DB connection
+// Connect to MongoDB
+mongoose
+  .connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("✅ MongoDB connected");
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`🚀 Server running at http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("MongoDB connection error:", err);
+    console.error("❌ MongoDB connection error:", err.message);
   });
