@@ -1,1 +1,62 @@
-<h1>Welcome to the Admin Dashboard</h1>
+<h2>Admin Dashboard</h2>
+
+<!-- Filter Dropdown -->
+<label>Filter by Department:
+  <select [(ngModel)]="selectedDepartment" (change)="filterByDepartment()">
+    <option value="">All Departments</option>
+    <option *ngFor="let dept of uniqueDepartments" [value]="dept">{{ dept }}</option>
+  </select>
+</label>
+
+<!-- Edit Form -->
+<div *ngIf="selectedStudent">
+  <h3>Edit Student: {{ selectedStudent.name }}</h3>
+  <label>Name: <input [(ngModel)]="selectedStudent.name"></label><br>
+  <label>Email: <input [(ngModel)]="selectedStudent.email"></label><br>
+  <label>Department: <input [(ngModel)]="selectedStudent.department"></label><br>
+  <button (click)="saveStudentChanges()">Save</button>
+  <button (click)="selectedStudent = null">Cancel</button>
+</div>
+
+<!-- Students Table -->
+<div *ngIf="filteredStudents.length > 0; else noData">
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Roll</th>
+        <th>Department</th>
+        <th>Semester</th>
+        <th>Subjects</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let student of filteredStudents">
+        <td>{{ student.name }}</td>
+        <td>{{ student.roll }}</td>
+        <td>{{ student.department }}</td>
+        <td>
+          <span *ngIf="student.results?.length">{{ student.results[0]?.semester }}</span>
+          <span *ngIf="!student.results?.length">N/A</span>
+        </td>
+        <td>
+          <div *ngIf="student.results?.length > 0">
+            <div *ngFor="let sub of student.results[0].subjects">
+              {{ sub.name }}: {{ sub.marks }}
+            </div>
+          </div>
+          <span *ngIf="!student.results?.length">No results</span>
+        </td>
+        <td>
+          <button (click)="editStudent(student.roll)">Edit</button>
+          <button (click)="deleteStudent(student.roll)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<ng-template #noData>
+  <p>No students available.</p>
+</ng-template>

@@ -2,12 +2,12 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 
-const Admin = require("./models/Admin");
-const Student = require("./models/Student");
-const Course = require("./models/Course");
-const Result = require("./models/Result");
-const Department = require("./models/Department");
-const Semester = require("./models/Semester");
+const Admin = require("./server/models/Admin");
+const Student = require("./server/models/Student");
+const Course = require("./server/models/Course");
+const Result = require("./server/models/Result");
+const Department = require("./server/models/Department");
+const Semester = require("./server/models/Semester");
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/resultportal";
 
@@ -35,10 +35,8 @@ const lastNames = [
 (async () => {
   try {
     await mongoose.connect(MONGO_URI);
-    console.log("✅ Connected to MongoDB");
+    console.log(" Connected to MongoDB");
 
-    //await mongoose.connection.db.dropDatabase();
-    //console.log("🧹 Database dropped");
     await Promise.all([
         Admin.deleteMany({}),
         Department.deleteMany({}),
@@ -97,7 +95,7 @@ const lastNames = [
 
         const subjects = courseNames.map(name => ({
           name,
-          marks: Math.floor(Math.random() * 41) + 60, // 60–100
+          marks: Math.floor(Math.random() * 41) + 60,
           maxMarks: 100
         }));
 
@@ -112,10 +110,10 @@ const lastNames = [
     const adminPassword = await bcrypt.hash("admin123", 10);
     await Admin.create({ username: "admin", password: adminPassword });
 
-    console.log("🎉 Seeding complete!");
+    console.log(" Seeding complete!");
     process.exit(0);
   } catch (err) {
-    console.error("❌ Error during seeding:", err);
+    console.error(" Error during seeding:", err);
     process.exit(1);
   }
 })();

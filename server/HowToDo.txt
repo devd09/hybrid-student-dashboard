@@ -1,0 +1,59 @@
+add student
+
+{
+  "name": "Aarav Sharma",
+  "roll": "CSE031",
+  "semester": 1,
+  "department": "CSE",
+  "subjects": [
+    { "name": "Mathematics I", "marks": 85, "maxMarks": 100 },
+    { "name": "Physics I", "marks": 78, "maxMarks": 100 }
+  ]
+}
+
+
+Summary of All Student Routes Now
+GET /api/students – List all students
+POST /api/students – Add a new student (also generates a result)
+PUT /api/students/roll/:roll/marks – Update student marks and result
+DELETE /api/students/roll/:roll – Delete student and result by roll number 
+
+
+{
+  "name": "John Doe",
+  "roll": "CSE999",
+  "semester": 1,
+  "department": "CSE",
+  "email": "cse999@example.com",
+  "password": "JohnDoeCSE999",
+  "subjects": [
+    { "name": "Mathematics I", "marks": 78, "maxMarks": 100 },
+    { "name": "Physics I", "marks": 82, "maxMarks": 100 }
+  ]
+}
+
+
+Method: PUT
+
+URL: http://localhost:3000/api/students/roll/CSE999/marks
+{
+  "subjects": [
+    { "name": "Mathematics I", "marks": 90, "maxMarks": 100 },
+    { "name": "Physics I", "marks": 95, "maxMarks": 100 }
+  ]
+}
+
+
+
+
+
+/roll/CSE999
+
+
+| Method   | Endpoint                         | Description                                 | Body Required? |
+| -------- | -------------------------------- | ------------------------------------------- | -------------- |
+| `GET`    | `/api/students`                  | Fetch all students                          | ❌              |
+| `POST`   | `/api/students`                  | Create a new student and generate result    | ✅              |
+| `PUT`    | `/api/students/roll/:roll/marks` | Update a student’s marks and result by roll | ✅              |
+| `DELETE` | `/api/students/roll/:roll`       | Delete a student by roll number             | ❌              |
+

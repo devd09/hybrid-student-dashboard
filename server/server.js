@@ -22,7 +22,7 @@ app.use("/api/results", resultRoutes);    // Results fetch/create/update
 
 // Health check route
 app.get("/", (req, res) => {
-  res.send("✅ Student Dashboard Backend is Running");
+  res.send(" Student Dashboard Backend is Running");
 });
 
 // Enable Mongoose debug logs (shows raw queries)
@@ -35,13 +35,13 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => {
-    console.log("✅ MongoDB connected");
+    console.log(" MongoDB connected");
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`🚀 Server running at http://localhost:${PORT}`);
+      console.log(` Server running at http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("❌ MongoDB connection error:", err.message);
+    console.error(" MongoDB connection error:", err.message);
   });
