@@ -3,7 +3,16 @@ import { AdminLogin } from './admin-login/admin-login';
 import { AdminDashboard } from './admin-dashboard/admin-dashboard'; 
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'admin/login', pathMatch: 'full' },
-  { path: 'admin/login', component: AdminLogin },
-  { path: 'admin/dashboard', component: AdminDashboard }, 
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', component: AdminLogin },
+
+  {
+    path: 'admin',
+    component: AdminDashboard,
+    children: [
+      { path: 'dashboard', component: AdminDashboard, data: { tab: 'dashboard' } },
+      { path: 'students', component: AdminDashboard, data: { tab: 'students' } },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+    ]
+  }
 ];

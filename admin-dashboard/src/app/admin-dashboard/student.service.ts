@@ -45,4 +45,16 @@ deleteStudentByRoll(roll: string): Observable<any> {
   return this.http.delete(`${this.baseUrl}/api/students/roll/${roll}`);
 }
 
+// Add new student
+addStudent(data: any): Observable<any> {
+  return this.http.post(`${this.baseUrl}/api/students`, data);
+}
+
+
+// Create a result for a student
+createResult(data: any): Observable<any> {
+  return this.http.post(`${this.baseUrl}/api/results`, data);
+}
+
+
 }
