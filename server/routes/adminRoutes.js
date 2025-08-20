@@ -2,7 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/Admin");
-const authAdmin = require("../middleware/authAdmin"); // ✅ Correct middleware
+const authAdmin = require("../middleware/authAdmin"); // middleware
 
 const router = express.Router();
 

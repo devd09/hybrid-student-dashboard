@@ -2,40 +2,61 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class StudentService {
-  private baseUrl = 'http://localhost:3000'; // backend root
+  private baseUrl = 'http://localhost:3000/api'; // API base
 
   constructor(private http: HttpClient) {}
 
-  // Students
+  // ---------------- Students ----------------
   getAllStudents(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/api/students`);
+    return this.http.get<any[]>(`${this.baseUrl}/students`);
   }
+
   getStudentByRoll(roll: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/api/students/roll/${roll}`);
+    return this.http.get<any>(`${this.baseUrl}/students/roll/${roll}`);
   }
+
+  // ✅ Add student with auto roll/email/password/semester/result
+  addStudent(data: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/students/auto`, data);
+  }
+
   updateStudentByRoll(roll: string, data: any): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}/api/students/roll/${roll}`, data);
+    return this.http.put(`${this.baseUrl}/students/roll/${roll}`, data);
   }
+
   deleteStudentByRoll(roll: string): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}/api/students/roll/${roll}`);
+    return this.http.delete(`${this.baseUrl}/students/roll/${roll}`);
   }
 
-  // Results
+  // ---------------- Results ----------------
   getResultsByStudentId(studentId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/api/results/${studentId}`);
+    return this.http.get<any[]>(`${this.baseUrl}/results/${studentId}`);
   }
 
-  // Courses (for department + semester)
-  getCourses(department: string, semester: number): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.baseUrl}/api/courses?department=${encodeURIComponent(department)}&semester=${semester}`
-    );
+  addResult(data: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/results`, data);
   }
 
-  // Add student with auto roll/email/password + auto result
-  addStudentAuto(payload: { name: string; department: string; marks?: any[] }): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/api/students/auto`, payload);
+  updateResult(resultId: string, data: any): Observable<any> {
+    return this.http.put(`${this.baseUrl}/results/${resultId}`, data);
+  }
+
+  // ✅ Update marks by roll (recalculate automatically in backend)
+  updateMarksByRoll(roll: string, subjects: any[]): Observable<any> {
+    return this.http.put(`${this.baseUrl}/students/roll/${roll}/marks`, { subjects });
+  }
+
+  // ---------------- Departments ----------------
+  getDepartments(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/departments`);
+  }
+
+  // ✅ Get courses by department and semester
+  getCoursesByDeptAndSem(dept: string, semester: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/courses?department=${dept}&semester=${semester}`);
   }
 }
