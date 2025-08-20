@@ -8,12 +8,13 @@ const cors = require("cors");
 const adminRoutes = require("./routes/adminRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const resultRoutes = require("./routes/resultRoutes");
-
+const courseRoutes = require("./routes/courseRoutes");
 const app = express();
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
+app.use("/api/courses", courseRoutes);
 
 // API Routes
 app.use("/api/admin", adminRoutes);       // Admin login, etc.

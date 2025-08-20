@@ -1,84 +1,162 @@
 <div class="layout">
-  <!-- Sidebar -->
-  <nav class="sidebar">
-    <button (click)="activeTab = 'dashboard'">Dashboard</button>
-    <button (click)="activeTab = 'students'">Students</button>
-  </nav>
+  <!-- Left panel -->
+  <aside class="side">
+    <h3>Admin</h3>
+    <button (click)="setSection('students')" [class.active]="activeSection==='students'">Students</button>
+    <button (click)="setSection('add')" [class.active]="activeSection==='add'">Add Student</button>
+    <button (click)="setSection('departments')" [class.active]="activeSection==='departments'">Departments</button>
+  </aside>
 
-  <!-- Right Side Content -->
+  <!-- Right content -->
   <main class="content">
-    <!-- Dashboard Section -->
-    <div *ngIf="activeTab === 'dashboard'">
-      <h2>Dashboard</h2>
-      <p>Welcome, Admin! Here you can see summary stats.</p>
-      <p>Total Students: {{ students.length }}</p>
-      <p>Total Departments: {{ uniqueDepartments.length }}</p>
-    </div>
-
-    <!-- Students Section -->
-    <div *ngIf="activeTab === 'students'">
+    <!-- Students -->
+    <section *ngIf="activeSection==='students'">
       <h2>Students</h2>
 
-      <!-- Filter -->
       <label>Filter by Department:
-        <select [(ngModel)]="selectedDepartment" (change)="filterByDepartment()">
-          <option value="">All Departments</option>
+        <select [(ngModel)]="selectedDepartment" (change)="applyFilter()">
+          <option value="">All</option>
           <option *ngFor="let dept of uniqueDepartments" [value]="dept">{{ dept }}</option>
         </select>
       </label>
 
-      <!-- Edit Form -->
-      <div *ngIf="selectedStudent">
-        <h3>Edit Student: {{ selectedStudent.name }}</h3>
-        <label>Name: <input [(ngModel)]="selectedStudent.name"></label><br>
-        <label>Email: <input [(ngModel)]="selectedStudent.email"></label><br>
-        <label>Department: <input [(ngModel)]="selectedStudent.department"></label><br>
-        <button (click)="saveStudentChanges()">Save</button>
-        <button (click)="selectedStudent = null">Cancel</button>
+      <!-- Edit panel -->
+      <div *ngIf="selectedStudent" class="edit-card">
+        <h3>Edit: {{ selectedStudent.name }} ({{ selectedStudent.roll }})</h3>
+        <label>Name <input [(ngModel)]="selectedStudent.name" /></label>
+        <label>Email <input [(ngModel)]="selectedStudent.email" /></label>
+        <label>Department <input [(ngModel)]="selectedStudent.department" /></label>
+        <label>Semester <input type="number" [(ngModel)]="selectedStudent.semester" /></label>
+        <div class="actions">
+          <button (click)="saveStudentChanges()">Save</button>
+          <button class="secondary" (click)="cancelEdit()">Cancel</button>
+        </div>
       </div>
 
-      <!-- Students Table -->
-      <div *ngIf="filteredStudents.length > 0; else noData">
-        <table border="1">
+      <div *ngIf="filteredStudents.length; else noStudents">
+        <table class="table">
           <thead>
             <tr>
               <th>Name</th>
               <th>Roll</th>
               <th>Department</th>
               <th>Semester</th>
-              <th>Subjects</th>
+              <th>Subjects (latest)</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let student of filteredStudents">
-              <td>{{ student.name }}</td>
-              <td>{{ student.roll }}</td>
-              <td>{{ student.department }}</td>
+            <tr *ngFor="let s of filteredStudents">
+              <td>{{ s.name }}</td>
+              <td>{{ s.roll }}</td>
+              <td>{{ s.department }}</td>
+              <td>{{ s.results?.[0]?.semester || s.semester || 'N/A' }}</td>
               <td>
-                <span *ngIf="student.results?.length">{{ student.results[0]?.semester }}</span>
-                <span *ngIf="!student.results?.length">N/A</span>
-              </td>
-              <td>
-                <div *ngIf="student.results?.length > 0">
-                  <div *ngFor="let sub of student.results[0].subjects">
-                    {{ sub.name }}: {{ sub.marks }}
+                <div *ngIf="s.results?.length; else noRes">
+                  <div *ngFor="let sub of s.results[0].subjects">
+                    {{ sub.name }}: <strong>{{ sub.marks }}</strong>
                   </div>
                 </div>
-                <span *ngIf="!student.results?.length">No results</span>
+                <ng-template #noRes>—</ng-template>
               </td>
-              <td>
-                <button (click)="editStudent(student.roll)">Edit</button>
-                <button (click)="deleteStudent(student.roll)">Delete</button>
+              <td class="row-actions">
+                <button (click)="editStudent(s.roll)">Edit</button>
+                <button class="danger" (click)="deleteStudent(s.roll)">Delete</button>
+                <button (click)="viewResult(s)">View Result</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <ng-template #noData>
+      <ng-template #noStudents>
         <p>No students available.</p>
       </ng-template>
-    </div>
+    </section>
+
+    <!-- Add Student -->
+    <section *ngIf="activeSection==='add'">
+      <h2>Add Student (Auto)</h2>
+
+      <div class="card">
+        <label>Full Name
+          <input [(ngModel)]="newStudent.name" placeholder="e.g. Aarav Sharma" />
+        </label>
+
+        <label>Department
+          <select [(ngModel)]="newStudent.department" (change)="onDepartmentChangeForAdd()">
+            <option value="">Select department</option>
+            <option *ngFor="let dept of uniqueDepartments" [value]="dept">{{ dept }}</option>
+          </select>
+        </label>
+
+        <!-- Marks grid appears after department is chosen -->
+        <div *ngIf="availableCourses.length">
+          <h4>Enter Marks (Semester 1)</h4>
+          <div class="marks-grid">
+            <div class="mark-row" *ngFor="let c of availableCourses; let i = index">
+              <span class="label">{{ c.name }}</span>
+              <input type="number" min="0" max="100" [(ngModel)]="newStudent.marks[i].marks" placeholder="0-100" />
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button (click)="addStudent()">Add Student</button>
+        </div>
+      </div>
+
+      <div *ngIf="lastAddedInfo" class="info">
+        <p><strong>Roll:</strong> {{ lastAddedInfo.roll }}</p>
+        <p><strong>Email:</strong> {{ lastAddedInfo.email }}</p>
+        <p><strong>Temp Password:</strong> {{ lastAddedInfo.rawPassword }}</p>
+      </div>
+    </section>
+
+    <!-- Departments (read-only list) -->
+    <section *ngIf="activeSection==='departments'">
+      <h2>Departments</h2>
+      <ul>
+        <li *ngFor="let dept of uniqueDepartments">{{ dept }}</li>
+      </ul>
+    </section>
   </main>
+</div>
+
+<!-- Result modal -->
+<div class="overlay" *ngIf="selectedResult">
+  <div class="result-modal">
+    <h3>
+      Result — Sem {{ selectedResult.semester }}
+    </h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Marks</th>
+          <th>Max</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let sub of selectedResult.subjects">
+          <td>{{ sub.name }}</td>
+          <td>{{ sub.marks }}</td>
+          <td>{{ sub.maxMarks }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="summary">
+      <div><strong>Total:</strong> {{ selectedResult.totalMarks }}</div>
+      <div><strong>Percentage:</strong> {{ selectedResult.percentage }}%</div>
+      <div>
+        <strong>Status:</strong>
+        <span [style.color]="selectedResult.status === 'pass' ? 'green' : 'red'">
+          {{ selectedResult.status | uppercase }}
+        </span>
+      </div>
+    </div>
+
+    <button (click)="closeResult()">Close</button>
+  </div>
 </div>
