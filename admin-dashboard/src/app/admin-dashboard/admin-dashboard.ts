@@ -1,7 +1,11 @@
+const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StudentService } from './student.service';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -21,7 +25,13 @@ export class AdminDashboard implements OnInit {
 
   // For Edit Student Info
   editInfoStudent: any = null;
-
+  
+  // For Stats
+  stats = {
+    totalStudents: 0,
+    totalDepartments: 0,
+    avgSemester: 0
+  }; 
   // For Edit Marks
   editMarksStudent: any = null;
   editResult: any = null;
@@ -35,6 +45,7 @@ export class AdminDashboard implements OnInit {
   ngOnInit() {
     this.loadStudents();
     this.loadDepartments();
+    this.computeStats();
   }
 
   // ----------------- Students -----------------
@@ -45,6 +56,7 @@ export class AdminDashboard implements OnInit {
       } else {
         this.students = data || [];
       }
+      this.computeStats();
     });
   }
 
@@ -70,6 +82,7 @@ export class AdminDashboard implements OnInit {
     this.studentService.addStudent(this.newStudent).subscribe(() => {
       alert("Student added successfully with initial result!");
       this.loadStudents();
+      this.computeStats();
       this.cancel();
     });
   }
@@ -85,6 +98,7 @@ export class AdminDashboard implements OnInit {
       .subscribe(() => {
         alert("Student info updated!");
         this.loadStudents();
+        this.computeStats();
         this.cancel();
       });
   }
@@ -109,6 +123,7 @@ export class AdminDashboard implements OnInit {
     ).subscribe(() => {
       alert("Marks updated successfully!");
       this.loadStudents();
+      this.computeStats();
       this.cancel();
     });
   }
@@ -119,6 +134,7 @@ export class AdminDashboard implements OnInit {
       this.studentService.deleteStudentByRoll(student.roll).subscribe(() => {
         alert("Student deleted!");
         this.loadStudents();
+        this.computeStats();
       });
     }
   }
@@ -140,4 +156,87 @@ export class AdminDashboard implements OnInit {
     this.resultStudent = null;
     this.newStudent = { name: '', department: '' };
   }
+
+  // ----------------- inside class AdminDashboard -----------------
+
+searchTerm: string = "";
+sortField: string = "roll";
+sortDirection: 'asc' | 'desc' = 'asc';
+
+// Filter + Sort students
+get filteredStudents() {
+  let data = [...this.students];
+
+  // Search filter
+  if (this.searchTerm.trim()) {
+    const term = this.searchTerm.toLowerCase();
+    data = data.filter(
+      s =>
+        s.name.toLowerCase().includes(term) ||
+        s.roll.toLowerCase().includes(term)
+    );
+  }
+
+  // Sorting
+  data.sort((a, b) => {
+    let valA = a[this.sortField];
+    let valB = b[this.sortField];
+
+    if (typeof valA === "string") valA = valA.toLowerCase();
+    if (typeof valB === "string") valB = valB.toLowerCase();
+
+    if (valA < valB) return this.sortDirection === "asc" ? -1 : 1;
+    if (valA > valB) return this.sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  return data;
+}
+
+setSort(field: string) {
+  if (this.sortField === field) {
+    this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
+  } else {
+    this.sortField = field;
+    this.sortDirection = "asc";
+  }
+}
+
+
+
+private saveExcel(data: any[], fileName: string) {
+    if (!data || data.length === 0) {
+      alert("No data to export!");
+      return;
+    }
+
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Students");
+
+    const excelBuffer: any = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
+    saveAs(blob, fileName + ".xlsx");
+  }
+
+  // Export All
+  exportAllStudents() {
+    this.saveExcel(this.students, "all-students");
+  }
+
+  // Export Filtered (search + dept filter applied)
+  exportFilteredStudents() {
+    this.saveExcel(this.filteredStudents, "filtered-students");
+  }
+
+  // Compute stats
+    private computeStats() {
+    const list = this.filteredStudents;
+    this.stats.totalStudents = list.length;
+    this.stats.totalDepartments = new Set(list.map(s => s.department)).size;
+    const sumSem = list.reduce((acc, s) => acc + (Number(s.semester) || 0), 0);
+    this.stats.avgSemester = list.length ? Math.round((sumSem / list.length) * 10) / 10 : 0;
+}
+
+
 }

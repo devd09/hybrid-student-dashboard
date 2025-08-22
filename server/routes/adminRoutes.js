@@ -6,7 +6,7 @@ const authAdmin = require("../middleware/authAdmin"); // middleware
 
 const router = express.Router();
 
-// 🔐 Protected route: Dashboard
+// Protected route: Dashboard
 router.get("/dashboard", authAdmin, async (req, res) => {
   try {
     const admin = await Admin.findById(req.admin.id).select("-password");
@@ -16,7 +16,7 @@ router.get("/dashboard", authAdmin, async (req, res) => {
   }
 });
 
-// 📝 Register Admin (optional - disable in production)
+// Register Admin
 router.post("/register", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -32,7 +32,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// 🔑 Admin Login
+// Admin Login
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;

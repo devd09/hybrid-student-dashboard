@@ -1,122 +1,194 @@
-<div class="dashboard">
+<h1 class="title">Admin Dashboard</h1>
+
+<div class="dashboard-container">
   <!-- Sidebar -->
   <div class="sidebar">
-    <button (click)="selectedTab='view'">📋 View Students</button>
-    <button (click)="prepareAddStudent()">➕ Add Student</button>
-    <button (click)="selectedTab='departments'">🏢 View Departments</button>
+    <h2 class="logo">Admin</h2>
+    <button [class.active]="selectedTab==='dashboard'" (click)="selectedTab='dashboard'">Dashboard</button>
+    <button [class.active]="selectedTab==='view'" (click)="selectedTab='view'">View Students</button>
+    <button [class.active]="selectedTab==='add'" (click)="prepareAddStudent()">Add Student</button>
+    <button [class.active]="selectedTab==='exportAll'" (click)="exportAllStudents()">Export Whole Data</button>
+    <button [class.active]="selectedTab==='exportFiltered'" (click)="exportFilteredStudents()">Export Filtered</button>
+    <button [class.active]="selectedTab==='results'">Results</button>
   </div>
 
-  <!-- Main Content -->
-  <div class="content">
+  <!-- Main -->
+  <div class="main">
 
-    <!-- ----------------- VIEW STUDENTS ----------------- -->
-    <div *ngIf="selectedTab === 'view'">
-      <h2>All Students</h2>
-
-      <!-- Department Filter -->
-      <label>Filter by Department: 
-        <select [(ngModel)]="filterDept" (change)="loadStudents()">
-          <option value="">All</option>
-          <option value="CSE">CSE</option>
-          <option value="ECE">ECE</option>
-          <option value="ME">ME</option>
-          <option value="CIV">CIV</option>
-          <option value="IT">IT</option>
-        </select>
-      </label>
-
-      <table border="1" cellpadding="5">
-        <tr>
-          <th>Name</th>
-          <th>Roll</th>
-          <th>Department</th>
-          <th>Semester</th>
-          <th>Actions</th>
-        </tr>
-        <tr *ngFor="let s of students">
-          <td>{{s.name}}</td>
-          <td>{{s.roll}}</td>
-          <td>{{s.department}}</td>
-          <td>{{s.semester}}</td>
-          <td>
-            <button (click)="openEditInfo(s)">✏️ Edit Info</button>
-            <button (click)="openEditMarks(s)">📝 Edit Marks</button>
-            <button (click)="openResults(s)">📊 View Result</button>
-            <button (click)="deleteStudent(s)">❌ Delete</button>
-          </td>
-        </tr>
-      </table>
+  <!-- Dashboard Stats -->
+    <div *ngIf="selectedTab==='dashboard'" class="card">
+      <h2>Dashboard Overview</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>{{ stats.totalStudents }}</h3>
+          <p>Total Students</p>
+        </div>
+        <div class="stat-card">
+          <h3>{{ stats.totalDepartments }}</h3>
+          <p>Departments</p>
+        </div>
+        <div class="stat-card">
+          <h3>{{ stats.avgSemester }}</h3>
+          <p>Average Semester</p>
+        </div>
+      </div>
     </div>
+      <!-- View Students -->
+      <div *ngIf="selectedTab==='view'" class="card">
+        <h2>All Students</h2>
 
-    <!-- Add Student -->
-<div *ngIf="selectedTab === 'add'">
-  <h2>Add Student</h2>
-  <form (ngSubmit)="addStudent()">
-    <label>Name:</label>
-    <input [(ngModel)]="newStudent.name" name="name" required>
-    <label>Department:</label>
-    <select [(ngModel)]="newStudent.department" name="department" required>
-      <option *ngFor="let d of departments" [value]="d.code">{{ d.name }}</option>
-    </select>
-    <button type="submit">Add</button>
-    <button type="button" (click)="cancel()">Cancel</button>
-  </form>
-</div>
+        <!--Search + Filter -->
+        <div class="top-controls">
+          <label>
+            Filter by Department:
+            <select [(ngModel)]="filterDept" (change)="loadStudents()">
+              <option value="">All</option>
+              <option *ngFor="let d of departments" [value]="d.code">{{d.name}}</option>
+            </select>
+          </label>
 
-<!-- Edit Student Info -->
-<div *ngIf="selectedTab === 'editInfo'">
-  <h2>Edit Student Info</h2>
-  <form (ngSubmit)="saveStudentInfo()">
-    <label>Name:</label>
-    <input [(ngModel)]="editInfoStudent.name" name="name" required>
-    <label>Department:</label>
-    <input [(ngModel)]="editInfoStudent.department" name="department" required>
-    <button type="submit">Save</button>
-    <button type="button" (click)="cancel()">Cancel</button>
-  </form>
-</div>
+          <div class="search-bar">
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              placeholder="Search by name or roll..."
+            />
+          </div>
+        </div>
 
-<!-- Edit Marks -->
-<div *ngIf="selectedTab === 'editMarks'">
-  <h2>Edit Marks</h2>
-  <form (ngSubmit)="saveStudentMarks()">
-    <div *ngFor="let subject of editResult.subjects; let i = index">
-      <label>{{subject.name}}:</label>
-      <input type="number" [(ngModel)]="editResult.subjects[i].marks" name="marks{{i}}">
-    </div>
-    <button type="submit">Save</button>
-    <button type="button" (click)="cancel()">Cancel</button>
-  </form>
-</div>
+        <!-- Table -->
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th (click)="setSort('roll')">
+                Roll
+                <span *ngIf="sortField === 'roll'">
+                  {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
+              <th (click)="setSort('name')">
+                Name
+                <span *ngIf="sortField === 'name'">
+                  {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
+              <th (click)="setSort('department')">
+                Department
+                <span *ngIf="sortField === 'department'">
+                  {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
+              <th (click)="setSort('semester')">
+                Semester
+                <span *ngIf="sortField === 'semester'">
+                  {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
+              <th>Email</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-<!-- View Results -->
-<div *ngIf="selectedTab === 'results'">
-  <h2>{{resultStudent?.name}} - Results</h2>
-  <div *ngFor="let result of studentResults">
-    <h4>Semester {{result.semester}}</h4>
-    <ul>
-      <li *ngFor="let s of result.subjects">
-        {{s.name}}: {{s.marks}} / {{s.maxMarks}}
-      </li>
-    </ul>
-  </div>
-  <button type="button" (click)="cancel()">Back</button>
-</div>
+          <tbody>
+            <tr *ngFor="let s of filteredStudents">
+              <td>{{s.roll}}</td>
+              <td>{{s.name}}</td>
+              <td>{{s.department}}</td>
+              <td>{{s.semester}}</td>
+              <td>{{s.email}}</td>
+              <td>
+                <button class="btn primary" (click)="openEditInfo(s)">Edit Info</button>
+                <button class="btn secondary" (click)="openEditMarks(s)">Marks</button>
+                <button class="btn success" (click)="openResults(s)">Results</button>
+                <button class="btn danger" (click)="deleteStudent(s)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
+      <!-- Add Student -->
+      <div *ngIf="selectedTab==='add'" class="card">
+        <h2>Add Student</h2>
+        <form (ngSubmit)="addStudent()">
+          <label>Name: <input type="text" [(ngModel)]="newStudent.name" name="name" required></label>
+          <label>Department:
+            <select [(ngModel)]="newStudent.department" name="department" required>
+              <option *ngFor="let d of departments" [value]="d.code">{{d.name}}</option>
+            </select>
+          </label>
+          <div class="actions">
+            <button type="submit" class="btn primary">Save</button>
+            <button type="button" class="btn cancel" (click)="cancel()">Cancel</button>
+          </div>
+        </form>
+      </div>
 
-    <!-- ----------------- VIEW DEPARTMENTS ----------------- -->
-    <div *ngIf="selectedTab === 'departments'">
-      <h2>Departments</h2>
-      <table border="1" cellpadding="5">
-        <tr>
-          <th>Code</th>
-          <th>Name</th>
-        </tr>
-        <tr *ngFor="let d of departments">
-          <td>{{d.code}}</td>
-          <td>{{d.name}}</td>
-        </tr>
-      </table>
-    </div>
+      <!-- Edit Info -->
+      <div *ngIf="selectedTab==='editInfo'" class="card">
+        <h2>Edit Student Info</h2>
+        <ng-container *ngIf="editInfoStudent; else noInfo">
+          <form (ngSubmit)="saveStudentInfo()">
+            <label>Name: <input type="text" [(ngModel)]="editInfoStudent.name" name="editName"></label>
+            <label>Semester: <input type="number" [(ngModel)]="editInfoStudent.semester" name="editSem"></label>
+            <div class="actions">
+              <button type="submit" class="btn primary">Update</button>
+              <button type="button" class="btn cancel" (click)="cancel()">Cancel</button>
+            </div>
+          </form>
+        </ng-container>
+        <ng-template #noInfo><p>Select a student to edit info.</p></ng-template>
+      </div>
+
+      <!-- Edit Marks -->
+      <div *ngIf="selectedTab==='editMarks'" class="card">
+        <h2>Edit Marks</h2>
+        <ng-container *ngIf="editMarksStudent; else noMarks">
+          <h3>{{editMarksStudent?.name}}</h3>
+          <table class="styled-table">
+            <thead>
+              <tr><th>Subject</th><th>Marks</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let subj of editResult.subjects">
+                <td>{{subj.name}}</td>
+                <td><input type="number" [(ngModel)]="subj.marks"></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="actions">
+            <button class="btn primary" (click)="saveStudentMarks()">Save</button>
+            <button class="btn cancel" (click)="cancel()">Cancel</button>
+          </div>
+        </ng-container>
+        <ng-template #noMarks><p>Select a student to edit marks.</p></ng-template>
+      </div>
+
+      <!-- Results -->
+      <div *ngIf="selectedTab==='results'" class="card">
+        <h2>Results</h2>
+        <ng-container *ngIf="resultStudent; else noResults">
+          <h3>{{resultStudent?.name}}</h3>
+          <table class="styled-table">
+            <thead>
+              <tr><th>Subject</th><th>Marks</th><th>Max Marks</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let subj of studentResults[0]?.subjects">
+                <td>{{subj.name}}</td>
+                <td>{{subj.marks}}</td>
+                <td>{{subj.maxMarks}}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p><b>Total:</b> {{studentResults[0]?.total}}</p>
+          <p><b>Percentage:</b> {{studentResults[0]?.percentage}}%</p>
+          <p><b>Status:</b> {{studentResults[0]?.status}}</p>
+          <div class="actions">
+            <button class="btn cancel" (click)="cancel()">Close</button>
+          </div>
+        </ng-container>
+        <ng-template #noResults><p>Select a student to view results.</p></ng-template>
+      </div>
   </div>
 </div>

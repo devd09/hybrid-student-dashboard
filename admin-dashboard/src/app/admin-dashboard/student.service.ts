@@ -19,7 +19,7 @@ export class StudentService {
     return this.http.get<any>(`${this.baseUrl}/students/roll/${roll}`);
   }
 
-  // ✅ Add student with auto roll/email/password/semester/result
+  // Add student with auto roll/email/password/semester/result
   addStudent(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/students/auto`, data);
   }
@@ -45,7 +45,7 @@ export class StudentService {
     return this.http.put(`${this.baseUrl}/results/${resultId}`, data);
   }
 
-  // ✅ Update marks by roll (recalculate automatically in backend)
+  //Update marks by roll (recalculate automatically in backend)
   updateMarksByRoll(roll: string, subjects: any[]): Observable<any> {
     return this.http.put(`${this.baseUrl}/students/roll/${roll}/marks`, { subjects });
   }
@@ -55,7 +55,7 @@ export class StudentService {
     return this.http.get<any[]>(`${this.baseUrl}/departments`);
   }
 
-  // ✅ Get courses by department and semester
+  //Get courses by department and semester
   getCoursesByDeptAndSem(dept: string, semester: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/courses?department=${dept}&semester=${semester}`);
   }
