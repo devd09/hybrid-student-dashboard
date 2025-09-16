@@ -162,3 +162,63 @@
   margin: 5px 0 0;
   color: #555;
 }
+
+.activity-log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.activity-log li {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.activity-log .time {
+  font-size: 0.85rem;
+  color: #888;
+  margin-right: 10px;
+  min-width: 70px;
+}
+
+.activity-log .msg {
+  color: #333;
+}
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  padding: 12px 18px;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+}
+
+/* Colors */
+.toast.success { background: #4caf50; }
+.toast.error   { background: #f44336; }
+.toast.info    { background: #2196f3; }
+
+/* Animations */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateX(100%); }
+}

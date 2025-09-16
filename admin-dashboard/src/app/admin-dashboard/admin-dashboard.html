@@ -9,7 +9,14 @@
     <button [class.active]="selectedTab==='add'" (click)="prepareAddStudent()">Add Student</button>
     <button [class.active]="selectedTab==='exportAll'" (click)="exportAllStudents()">Export Whole Data</button>
     <button [class.active]="selectedTab==='exportFiltered'" (click)="exportFilteredStudents()">Export Filtered</button>
-    <button [class.active]="selectedTab==='results'">Results</button>
+    <button [class.active]="selectedTab==='activity'" (click)="selectedTab='activity'">Activity Log</button>
+  </div>
+  
+  <!-- Toast Notifications -->
+  <div class="toast-container">
+    <div *ngFor="let note of notifications" class="toast" [ngClass]="note.type">
+      {{ note.message }}
+    </div>
   </div>
 
   <!-- Main -->
@@ -190,5 +197,16 @@
         </ng-container>
         <ng-template #noResults><p>Select a student to view results.</p></ng-template>
       </div>
+
+      <!-- Activity Log -->
+    <div *ngIf="selectedTab==='activity'" class="card">
+      <h2>Activity Log</h2>
+      <ul class="activity-log">
+        <li *ngFor="let log of activityLog">
+          <span class="time">{{ log.time | date:'shortTime' }}</span>
+          <span class="msg">{{ log.message }}</span>
+        </li>
+      </ul>
+    </div>
   </div>
 </div>

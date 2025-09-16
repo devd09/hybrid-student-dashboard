@@ -25,13 +25,14 @@ export class AdminDashboard implements OnInit {
 
   // For Edit Student Info
   editInfoStudent: any = null;
-  
+
   // For Stats
   stats = {
     totalStudents: 0,
     totalDepartments: 0,
     avgSemester: 0
   }; 
+
   // For Edit Marks
   editMarksStudent: any = null;
   editResult: any = null;
@@ -40,9 +41,16 @@ export class AdminDashboard implements OnInit {
   resultStudent: any = null;
   studentResults: any[] = [];
 
+  // For Activity Log 
+  activityLog: { message: string, time: Date }[] = [];
+
+  // For Notification
+  notifications: { message: string, type: 'success' | 'error' | 'info' }[] = [];
+
   constructor(private studentService: StudentService) {}
 
   ngOnInit() {
+    this.loadActivityLog();
     this.loadStudents();
     this.loadDepartments();
     this.computeStats();
@@ -75,14 +83,15 @@ export class AdminDashboard implements OnInit {
 
   addStudent() {
     if (!this.newStudent.name || !this.newStudent.department) {
-      alert("Name & Department are required");
+      this.showNotification("Name & Department are required", "error");
       return;
     }
 
     this.studentService.addStudent(this.newStudent).subscribe(() => {
-      alert("Student added successfully with initial result!");
       this.loadStudents();
       this.computeStats();
+      this.logActivity(`Added student ${this.newStudent.name} (${this.newStudent.department})`);
+      this.showNotification("Student added successfully!", "success");
       this.cancel();
     });
   }
@@ -96,9 +105,10 @@ export class AdminDashboard implements OnInit {
   saveStudentInfo() {
     this.studentService.updateStudentByRoll(this.editInfoStudent.roll, this.editInfoStudent)
       .subscribe(() => {
-        alert("Student info updated!");
         this.loadStudents();
         this.computeStats();
+        this.logActivity(`Updated info for ${this.editInfoStudent.name}`);
+        this.showNotification("Student info updated!", "success");
         this.cancel();
       });
   }
@@ -111,7 +121,7 @@ export class AdminDashboard implements OnInit {
         this.editResult = { ...results[0] };
         this.selectedTab = 'editMarks';
       } else {
-        alert("No result found for this student");
+        this.showNotification("No result found for this student", "error");
       }
     });
   }
@@ -121,9 +131,10 @@ export class AdminDashboard implements OnInit {
       this.editMarksStudent.roll,
       this.editResult.subjects
     ).subscribe(() => {
-      alert("Marks updated successfully!");
       this.loadStudents();
       this.computeStats();
+      this.logActivity(`Updated marks for ${this.editMarksStudent.name}`);
+      this.showNotification("Marks updated successfully!", "success");
       this.cancel();
     });
   }
@@ -132,9 +143,10 @@ export class AdminDashboard implements OnInit {
   deleteStudent(student: any) {
     if (confirm(`Delete ${student.name}?`)) {
       this.studentService.deleteStudentByRoll(student.roll).subscribe(() => {
-        alert("Student deleted!");
         this.loadStudents();
         this.computeStats();
+        this.logActivity(`Deleted student ${student.name}`);
+        this.showNotification("Student deleted!", "success");
       });
     }
   }
@@ -157,56 +169,53 @@ export class AdminDashboard implements OnInit {
     this.newStudent = { name: '', department: '' };
   }
 
-  // ----------------- inside class AdminDashboard -----------------
+  // ----------------- Search + Sort -----------------
+  searchTerm: string = "";
+  sortField: string = "roll";
+  sortDirection: 'asc' | 'desc' = 'asc';
 
-searchTerm: string = "";
-sortField: string = "roll";
-sortDirection: 'asc' | 'desc' = 'asc';
+  get filteredStudents() {
+    let data = [...this.students];
 
-// Filter + Sort students
-get filteredStudents() {
-  let data = [...this.students];
+    // Search filter
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase();
+      data = data.filter(
+        s =>
+          s.name.toLowerCase().includes(term) ||
+          s.roll.toLowerCase().includes(term)
+      );
+    }
 
-  // Search filter
-  if (this.searchTerm.trim()) {
-    const term = this.searchTerm.toLowerCase();
-    data = data.filter(
-      s =>
-        s.name.toLowerCase().includes(term) ||
-        s.roll.toLowerCase().includes(term)
-    );
+    // Sorting
+    data.sort((a, b) => {
+      let valA = a[this.sortField];
+      let valB = b[this.sortField];
+
+      if (typeof valA === "string") valA = valA.toLowerCase();
+      if (typeof valB === "string") valB = valB.toLowerCase();
+
+      if (valA < valB) return this.sortDirection === "asc" ? -1 : 1;
+      if (valA > valB) return this.sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return data;
   }
 
-  // Sorting
-  data.sort((a, b) => {
-    let valA = a[this.sortField];
-    let valB = b[this.sortField];
-
-    if (typeof valA === "string") valA = valA.toLowerCase();
-    if (typeof valB === "string") valB = valB.toLowerCase();
-
-    if (valA < valB) return this.sortDirection === "asc" ? -1 : 1;
-    if (valA > valB) return this.sortDirection === "asc" ? 1 : -1;
-    return 0;
-  });
-
-  return data;
-}
-
-setSort(field: string) {
-  if (this.sortField === field) {
-    this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
-  } else {
-    this.sortField = field;
-    this.sortDirection = "asc";
+  setSort(field: string) {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
+    } else {
+      this.sortField = field;
+      this.sortDirection = "asc";
+    }
   }
-}
 
-
-
-private saveExcel(data: any[], fileName: string) {
+  // ----------------- Export -----------------
+  private saveExcel(data: any[], fileName: string) {
     if (!data || data.length === 0) {
-      alert("No data to export!");
+      this.showNotification("No data to export!", "error");
       return;
     }
 
@@ -217,26 +226,47 @@ private saveExcel(data: any[], fileName: string) {
     const excelBuffer: any = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const blob: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
     saveAs(blob, fileName + ".xlsx");
+
+    this.showNotification(`${fileName}.xlsx exported successfully`, "success");
   }
 
-  // Export All
   exportAllStudents() {
     this.saveExcel(this.students, "all-students");
   }
 
-  // Export Filtered (search + dept filter applied)
   exportFilteredStudents() {
     this.saveExcel(this.filteredStudents, "filtered-students");
   }
 
-  // Compute stats
-    private computeStats() {
+  // ----------------- Stats -----------------
+  private computeStats() {
     const list = this.filteredStudents;
     this.stats.totalStudents = list.length;
     this.stats.totalDepartments = new Set(list.map(s => s.department)).size;
     const sumSem = list.reduce((acc, s) => acc + (Number(s.semester) || 0), 0);
     this.stats.avgSemester = list.length ? Math.round((sumSem / list.length) * 10) / 10 : 0;
-}
+  }
 
+  // ----------------- Activity Log -----------------
+    loadActivityLog() {
+      this.studentService.getActivityLogs().subscribe(data => {
+        this.activityLog = data || [];
+      });
+    }
 
+    // Save log
+    private logActivity(message: string) {
+      this.studentService.addActivityLog(message).subscribe(() => {
+        this.loadActivityLog(); // refresh UI after adding
+      });
+    }
+
+  // ----------------- Notifications -----------------
+  private showNotification(message: string, type: 'success' | 'error' | 'info' = 'info') {
+    const note = { message, type };
+    this.notifications.push(note);
+    setTimeout(() => {
+      this.notifications = this.notifications.filter(n => n !== note);
+    }, 3500);
+  }
 }

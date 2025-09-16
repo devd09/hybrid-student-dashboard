@@ -10,6 +10,8 @@ const studentRoutes = require("./routes/studentRoutes");
 const resultRoutes = require("./routes/resultRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
+const activityLogRoutes = require("./routes/activityLogRoutes");
+
 const app = express();
 
 // Middlewares
@@ -22,6 +24,8 @@ app.use("/api/admin", adminRoutes);       // Admin login, etc.
 app.use("/api/students", studentRoutes);  // Student login/dashboard
 app.use("/api/results", resultRoutes);    // Results fetch/create/update
 app.use("/api/departments", departmentRoutes); // Departments fetch
+app.use("/api/activity-log", activityLogRoutes); // Activity log routes
+app.use("/api/students", studentRoutes); // Student Login 
 // Health check route
 app.get("/", (req, res) => {
   res.send(" Student Dashboard Backend is Running");

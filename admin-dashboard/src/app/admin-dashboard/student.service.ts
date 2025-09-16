@@ -59,4 +59,13 @@ export class StudentService {
   getCoursesByDeptAndSem(dept: string, semester: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/courses?department=${dept}&semester=${semester}`);
   }
+  // Activity Log 
+  getActivityLogs() {
+  return this.http.get<any[]>(`${this.baseUrl}/activity-log`);
+}
+
+addActivityLog(message: string) {
+  return this.http.post(`${this.baseUrl}/activity-log`, { message });
+}
+
 }

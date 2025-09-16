@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Login</title>
+  <style>
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    }
+
+    body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #4e73df, #1cc88a);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    }
+
+    .login-container {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+    width: 350px;
+    text-align: center;
+    }
+
+    .login-container h2 {
+    margin-bottom: 20px;
+    color: #333;
+    }
+
+    .login-container input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    }
+
+    .login-container input:focus {
+    border-color: #4e73df;
+    outline: none;
+    }
+
+    .login-container button {
+    width: 100%;
+    padding: 12px;
+    background: #4e73df;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    }
+
+    .login-container button:hover {
+    background: #3751c7;
+    }
+
+    .error {
+    margin-top: 10px;
+    color: red;
+    font-size: 14px;
+    }
+</style>
+</head>
+<body>
+<div class="login-container">
+    <h2>Student Login</h2>
+    <form id="loginForm">
+    <input type="email" id="email" placeholder="Enter Email" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+    <button type="submit">Login</button>
+    </form>
+    <p id="error" class="error"></p>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    try {
+        const res = await fetch('http://localhost:3000/api/students/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+    throw new Error(data.error || "Invalid login");
+        }
+
+        
+        localStorage.setItem('student', JSON.stringify(data.student));
+
+        
+        window.location.href = "result.html";
+    } catch (err) {
+        document.getElementById('error').innerText = err.message;
+    }
+    });
+</script>
+</body>
+</html>
